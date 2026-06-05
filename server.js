@@ -68,6 +68,28 @@ io.on("connection", (socket) => {
     console.log(`Pesanan baru dikirim ke owner_${ownerId}`);
   });
 
+  socket.on("order:cancelled_by_customer", (data) => {
+    console.log("Pesanan dibatalkan customer:", data);
+
+    const ownerId = data.ownerId;
+
+    if (!ownerId) {
+      console.log("order:cancelled_by_customer gagal, ownerId kosong");
+      return;
+    }
+
+    socket.to(`owner_${ownerId}`).emit("order:cancelled_received", {
+      orderId: data.orderId,
+      ownerId: data.ownerId,
+      customerId: data.customerId,
+      customerName: data.customerName,
+      message: data.message || "Customer membatalkan pesanan",
+      timestamp: new Date().toISOString(),
+    });
+
+    console.log(`Notifikasi pembatalan dikirim ke owner_${ownerId}`);
+  });
+
   socket.on("order:status_changed", (data) => {
     console.log("Status pesanan berubah:", data);
 
